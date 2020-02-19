@@ -114,25 +114,29 @@ group by  departements.name;
 
 #12. Quel sont les 10 départements comptant le plus d’ouvriers.
 
-select nom_normalise, Ouvriers from categorie
-inner join elus on categorie.Code=elus.code_insee
-inner join villes on elus.code_insee=villes.code_insee
+create index ind_code_insee on elus(code_insee);
+
+
+select departements.name, Ouvriers
+from categorie 
+inner join villes on categorie.Code=villes.code_insee
 inner join departements on villes.departement_code=departements.code
-group by nom_normalise, Ouvriers
-order by Ouvriers limit 10;
+group by departements.name, Ouvriers
+order by Ouvriers desc limit 10;
 
 
 #13. Afficher le nombre d’élus regrouper par nuance politique et par département.
 
+create index index_libelle
+on nuancier(code,libelle);
+
 select count(nom) as nombre_elus
 , nuancier.libelle 
-, departements.name
 from nuancier
 inner join elus on nuancier.code=elus.code_nuance_de_la_liste
-inner join villes on elus.code_insee=villes.code_insee
+inner join villes on elus.code_insee = villes.code_insee
 inner join departements on villes.departement_code=departements.code
-group by libelle, departements.name
-order by libelle;
+group by libelle, departements.name;
 
 
 #14. Afficher le nombre d’élus regroupé par nuance politique et par villes pour le département des « Bouches-du-Rhône ».
@@ -147,11 +151,11 @@ group by villes.name;
 
 #15. Afficher les 10 départements dans lesquelles il y a le plus d’élus femme, ainsi que le nombre d’élus femme correspondant.
 
-select count(elus.nom) as nbre_elus_femme, departements.name, sexe from elus
+select count(elus.nom) as nbre_elus_femme, departements.name from elus
 inner join villes on elus.code_insee=villes.code_insee
 inner join departements on villes.departement_code=departements.code 
 where sexe="F"
-group by departements.name, sexe
+group by departements.name
 order by nbre_elus_femme desc limit 10;
 
 #16. Donner l’âge moyen des élus par départements au 01/01/2014. Les afficher par ordre décroissant. 
