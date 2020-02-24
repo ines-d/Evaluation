@@ -127,16 +127,16 @@ order by Ouvriers desc limit 10;
 
 #13. Afficher le nombre d’élus regrouper par nuance politique et par département.
 
-create index index_libelle
-on nuancier(code,libelle);
+create index index_libelle on nuancier (code,libelle);
 
-select count(nom) as nombre_elus
-, nuancier.libelle 
+select  nuancier.libelle 
+, departements.name
+, count(nom) as nombre_elus
 from nuancier
 inner join elus on nuancier.code=elus.code_nuance_de_la_liste
 inner join villes on elus.code_insee = villes.code_insee
 inner join departements on villes.departement_code=departements.code
-group by libelle, departements.name;
+group by nuancier.libelle, departements.name;
 
 
 #14. Afficher le nombre d’élus regroupé par nuance politique et par villes pour le département des « Bouches-du-Rhône ».
@@ -151,7 +151,9 @@ group by villes.name;
 
 #15. Afficher les 10 départements dans lesquelles il y a le plus d’élus femme, ainsi que le nombre d’élus femme correspondant.
 
-select count(elus.nom) as nbre_elus_femme, departements.name from elus
+select departements.name
+, count(elus.nom) as nbre_elus_femme
+from elus
 inner join villes on elus.code_insee=villes.code_insee
 inner join departements on villes.departement_code=departements.code 
 where sexe="F"

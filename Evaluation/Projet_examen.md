@@ -18,18 +18,36 @@ def r_names(elus):
     return x3
 print(r_names(elus))
 
-x3=r_names(elus)
+# la correction 
+x=r_names(elus)
 
-def parse_dates(x3):
-    for i in range (0, len(x3)):
-        if x3[i][0:4]=='Date':
-            return x3[i]
+def parse_dates(x):
+    y=[]
+    for i in range (0, len(x)):
+        if x[i][0:4]=='Date':
+            y.append(x[i])
+    return y # même si il n'y a pas de resultat la fonction nous renvoie une liste vide
 
-print(parse_dates(x3))
+print(parse_dates(x))
+
+
+# 2ème methode 
+
+def parse_date(x):
+    x="".join()
+    x=findall("Date[^\s]*",x)
+    return x
+print(parse_date(x))
+
+# 3ème methode
+
+def parse_date(x):
+    return [i for i in x if i.startwhith('Date')]
+print (parse_date(x))
 ```
 
     ['code_insee', 'mode_de_scrutin', 'numliste', 'code_nuance_de_la_liste', 'numero_du_candidat_dans_la_liste', 'tour', 'nom', 'prenom', 'sexe', 'Date_de_naissance', 'code_profession', 'libelle_profession', 'nationalite']
-    Date_de_naissance
+    ['Date_de_naissance']
 
 
 
@@ -119,6 +137,21 @@ print(r_names(villes))
     ['code', 'libelle', 'ordre', 'definition_']
     ['id', 'departement_code', 'code_insee', 'zip_code', 'name']
 
+
+
+```python
+# correction de la question 6 "importer les fichier"
+
+def chargement(s,path, table):# s= nom des colonnes , path= le chemain, table =le nom de la table
+    name_cols= r_names(s)# on appelle la fonction r_names sur s
+    df=pd.read_excel(path, skiprows=[0,1], header= None, names=name_cols, parse_dates=parse_dates(s))
+    df.to_sql(table, con=engine, if_exist=append, index=False)
+    return (print('tableau', table, 'a été chargée))
+chargement(elus,'/home/ines/Documents/Projet_examen/elus_mun2014.xlsx', 'elus' )# le premier elus c'est le nom des colonnes et le deuxième elus c'est le nom de la table qui a été créer avant
+chargement(population,'/home/ines/Documents/Projet_examen/population2017.xlsx','population')
+chargement(po)
+                  
+```
 
 
 ```python
