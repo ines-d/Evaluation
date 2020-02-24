@@ -98,6 +98,13 @@ inner join villes on elus.code_insee=villes.code_insee
 inner join departements on villes.departement_code=departements.code
 where departements.name ='var' and month(Date_de_naissance) between 06 and 08;
 
+# 2ème methode "optimisation logique"
+
+select nom, prenom, Date_de_naissance from elus
+inner join villes on elus.code_insee=villes.code_insee and month(Date_de_naissance) between 06 and 08 
+inner join departements on villes.departement_code=departements.code where departements.name ='var' and month(Date_de_naissance) between 06 and 08;
+
+
 #10. Quel est l’âge moyen des élus homme au 01/01/2014 ? Celui des élus femme ?
 
 select sexe, avg(timestampdiff(year,Date_de_naissance, '2014-01-01')) as age_moyen from elus
@@ -111,6 +118,21 @@ inner join villes on population.code_insee=villes.code_insee
 inner join departements on villes.departement_code=departements.code
 where departements.name = 'Bouches-du-Rhône'
 group by  departements.name;
+
+# 2ème méthode optimisation logique (comment ecrire sa requete)
+
+select sum(Population_legale) as population_totale 
+from population
+inner join villes on population.code_insee=villes.code_insee
+inner join departements on villes.departement_code=departements.code and departements.code=13;
+
+# 3ème méthode optimisation physique creation d'index(while, group by, order by, on)
+create index ind_code on departements (code);
+
+select sum(Population_legale) as population_totale 
+from population
+inner join villes on population.code_insee=villes.code_insee and departements.code= 13;
+
 
 #12. Quel sont les 10 départements comptant le plus d’ouvriers.
 
@@ -126,8 +148,11 @@ order by Ouvriers desc limit 10;
 
 
 #13. Afficher le nombre d’élus regrouper par nuance politique et par département.
+create index idx_code_insee on elus (code_insee);
+create index idx_code_nuance on elus (code_nuance_de_la_liste);
+create index index_libelle on nuancier (libelle);
+create index idx_villes on villes (code_insee);
 
-create index index_libelle on nuancier (code,libelle);
 
 select  nuancier.libelle 
 , departements.name
@@ -138,15 +163,29 @@ inner join villes on elus.code_insee = villes.code_insee
 inner join departements on villes.departement_code=departements.code
 group by nuancier.libelle, departements.name;
 
+# requete yacine
+SELECT COUNT(nom) as nombre_elus, departements.name, nuancier.libelle 
+FROM elus
+JOIN villes
+ON elus.code_insee = villes.code_insee
+JOIN departements
+ON departements.code = villes.departement_code
+JOIN nuancier
+ON nuancier.code = elus.code_nuance_de_la_liste
+GROUP BY nuancier.libelle, departements.name; 
 
 #14. Afficher le nombre d’élus regroupé par nuance politique et par villes pour le département des « Bouches-du-Rhône ».
 
-select count(nom) as  nbre_elus, villes.name  from nuancier 
+select 
+ nuancier.libelle
+, villes.name 
+, count(nom) as  nbre_elus
+from nuancier
 inner join elus on nuancier.code=elus.code_nuance_de_la_liste
 inner join villes on elus.code_insee=villes.code_insee
 inner join departements on villes.departement_code=departements.code
 where departements.code='13'
-group by villes.name;
+group by nuancier.libelle, villes.name;
 
 
 #15. Afficher les 10 départements dans lesquelles il y a le plus d’élus femme, ainsi que le nombre d’élus femme correspondant.
@@ -162,10 +201,12 @@ order by nbre_elus_femme desc limit 10;
 
 #16. Donner l’âge moyen des élus par départements au 01/01/2014. Les afficher par ordre décroissant. 
 
-select avg(timestampdiff(year,'2014-01-01', Date_de_naissance)) as age_moyen, nom_normalise from elus 
+select departements.name
+,avg(timestampdiff(year,'2014-01-01', Date_de_naissance)) as age_moyen
+from elus 
 inner join villes on elus.code_insee=villes.code_insee
 inner join departements on villes.departement_code=departements.code
-group by nom_normalise
+group by departements.name
 order by age_moyen desc
 limit 10;
  
